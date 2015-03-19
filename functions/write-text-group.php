@@ -28,11 +28,19 @@ function writeTextGroup($image, $image_width, $image_height, $params){
         }
 
         $words = explode(' ', $params['text']);
-        $mlength = $params['max-width']>0 && $params['white-space']=="normal" ?
-            $params['max-width'] :
+        $mlength = (intval($params['max-width'])>0 && $params['white-space']=="normal") ?
+            intval($params['max-width']) :
+            (
             $params['white-space']=="normal" ?
-                abs($image_width - $params['left']) :
-                NULL;
+                ($params['text-align'] != "center" ?
+                    abs($image_width - $params['left']):
+                    ($image_width - (round( abs($params['left']-($image_width/2)) )*2) )
+                ) :
+                NULL
+            );
+
+
+        //imagestring($image, 5, 11, 230+$params['top'], 'ml:'.$mlength, $black);//shadow
 
         $line = '';
 
@@ -40,7 +48,7 @@ function writeTextGroup($image, $image_width, $image_height, $params){
 
             $sizeWithWord = imagettfbboxWithTracking($params['font-size'],  $params['angle'], $font_file, $line==""? $word: ($line .' '.$word), $params['letter-spacing']);
 
-            if( strpos($word, '|-|')!==false || ($mlength != NULL && ($sizeWithWord[2] - abs($sizeWithWord[0]) > $mlength))){
+            if( strpos($word, '|-|')!==false || ($mlength != NULL && (abs($sizeWithWord[2]) - abs($sizeWithWord[0]) > $mlength))){
 
                 if($params['text-align'] == "center"){
                     $tmpleft = centerText($image, $params['font-size'], $font_file, $line, $image_width, $params['left'], $params['letter-spacing']);
@@ -88,7 +96,7 @@ function writeTextGroup($image, $image_width, $image_height, $params){
         }
         $sizeWithWord = imagettfbboxWithTracking($params['font-size'],  $params['angle'], $font_file, $params['text']);//only care about height here
 
-        //imagestring($image, 5, 40, 120, $sizeWithWord.' h', $black);//shadow
+
 
         $lines[] = array('line_text'=>$params['text'],'line_left'=>$params['left'], 'font_height'=> $sizeWithWord['height']);
 
